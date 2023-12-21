@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { Service } from '../enums';
+import { Service } from '../common/enums';
 import { UtilsService } from './utils.service';
 
 @Module({

@@ -1,21 +1,25 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
-import { Service } from '../enums';
+import { ResponseMessage, Service } from '../common/enums';
 import { PrismaService } from '../prisma/prisma.service';
-import { ResponseMessage } from './enums';
 import { UserCreateDto } from './dto/user-create-dto';
 import { ICryptoService } from '../crypto/crypto.service';
 import { User } from './entities/user.entity';
-import { plainToInstance } from 'class-transformer';
 
-export interface IUserService {
+export interface IUsersService {
   findById(id: number): Promise<User>;
-  findAll(): Promise<User[]>;
+  findMany(options?: Prisma.UserFindManyArgs): Promise<User[]>;
+  findOne(options: Prisma.UserFindFirstArgs): Promise<User>;
+  update(options: Prisma.UserUpdateArgs): Promise<User>;
   create(userCreateDto: UserCreateDto): Promise<User>;
+  updateRefreshToken(userId: number, refreshToken?: string): Promise<void>;
+  getUserIfRefreshTokenMatches(refreshToken: string, userId: number): Promise<User>;
+  deleteById(userId: number): Promise<{ count: number }>;
 }
 
 @Injectable()
-export class UsersService implements IUserService {
+export class UsersService implements IUsersService {
   constructor(
     @Inject(Service.Prisma) private readonly prismaService: PrismaService,
     @Inject(Service.Crypto) private readonly cryptoService: ICryptoService
@@ -35,18 +39,34 @@ export class UsersService implements IUserService {
     return user;
   }
 
-  public async findAll(): Promise<User[]> {
-    const users = await this.prismaService.user.findMany();
+  public async update(options: Prisma.UserUpdateArgs): Promise<User> {
+    if (options.data.email && !(await this.isEmailUnique(options.data.email.toString()))) {
+      throw new BadRequestException(ResponseMessage.EmailAlreadyExists);
+    }
 
-    return users;
+    if (options.data.password) {
+      options.data.password = await this.cryptoService.generateSaltAndHash(options.data.password.toString());
+    }
+
+    return this.prismaService.user.update(options);
+  }
+
+  public async findMany(options?: Prisma.UserFindManyArgs): Promise<User[]> {
+    return this.prismaService.user.findMany(options);
+  }
+
+  public async findOne(options: Prisma.UserFindFirstArgs): Promise<User> {
+    return this.prismaService.user.findFirst(options);
+  }
+
+  private async isEmailUnique(email: string): Promise<boolean> {
+    return !(await this.prismaService.user.findFirst({ where: { email } }));
   }
 
   public async create(userCreateDto: UserCreateDto): Promise<User> {
     const { email, password } = userCreateDto;
 
-    const existingUser = await this.prismaService.user.findFirst({ where: { email } });
-
-    if (existingUser) {
+    if (!(await this.isEmailUnique(email))) {
       throw new BadRequestException(ResponseMessage.EmailAlreadyExists);
     }
 
@@ -55,5 +75,26 @@ export class UsersService implements IUserService {
     return this.prismaService.user.create({
       data: { ...userCreateDto, password: hashedPassword },
     });
+  }
+
+  public async updateRefreshToken(userId: number, refreshToken?: string): Promise<void> {
+    const hashedRefreshToken = refreshToken ? await this.cryptoService.generateSaltAndHash(refreshToken) : null;
+
+    await this.update({ where: { id: userId }, data: { refreshToken: hashedRefreshToken } });
+  }
+
+  public async getUserIfRefreshTokenMatches(refreshToken: string, userId: number): Promise<User> {
+    const user = await this.findById(userId);
+
+    const isRefreshTokenMatching = await this.cryptoService.compare(refreshToken, user.refreshToken);
+
+    if (isRefreshTokenMatching) {
+      return user;
+    }
+  }
+
+  public async deleteById(userId: number): Promise<{ count: number }> {
+    await this.prismaService.user.delete({ where: { id: userId } });
+    return { count: 1 };
   }
 }

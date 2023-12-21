@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { Request } from 'express';
 
 export interface IUtilsService {
   stripNullValues(value: unknown): unknown;
+  extractBearerTokenFromHeader(request: Request): string;
 }
 
 @Injectable()
@@ -18,5 +20,10 @@ export class UtilsService implements IUtilsService {
     if (value !== null) {
       return value;
     }
+  }
+
+  public extractBearerTokenFromHeader(request: Request): string {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
   }
 }

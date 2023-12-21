@@ -2,7 +2,7 @@ import { CallHandler, ExecutionContext, Inject, Injectable, NestInterceptor } fr
 import { map, Observable } from 'rxjs';
 
 import { Service } from '../enums';
-import { IUtilsService } from '../utils/utils.service';
+import { IUtilsService } from '../../utils/utils.service';
 
 @Injectable()
 export class ExcludeNullInterceptor implements NestInterceptor {

@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 
-import { GlobalConstants } from './constants';
+import { GlobalConstants } from './common/constants';
 
 export function setupSwagger(app: INestApplication): OpenAPIObject {
   const config = new DocumentBuilder()

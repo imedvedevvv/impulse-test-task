@@ -8,5 +8,8 @@ export class User {
   username?: string;
 
   @Exclude()
-  password: string;
+  password!: string;
+
+  @Exclude()
+  refreshToken?: string;
 }

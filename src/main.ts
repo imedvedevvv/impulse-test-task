@@ -3,10 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { ClassSerializerInterceptor, ValidationPipe, ValidationPipeOptions } from '@nestjs/common';
 import helmet from 'helmet';
 
-import { GlobalConstants } from './constants';
+import { GlobalConstants } from './common/constants';
 import { AppModule } from './app.module';
-import { NoContentInterceptor } from './query/interceptors/no-content.interceptor';
+import { NoContentInterceptor } from './common/interceptors/no-content.interceptor';
 import { setupSwagger } from './swagger';
+import { HttpExceptionFilter } from './common/exception-filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,13 +21,13 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe(validationPipeConfig));
   app.useGlobalInterceptors(new NoContentInterceptor(), new ClassSerializerInterceptor(app.get(Reflector)));
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   app.use(helmet());
 
+  const document = setupSwagger(app);
   await app.listen(port);
   console.log(`Server listening at: ${apiUrl}`);
-
-  const document = setupSwagger(app);
 
   if (document) {
     console.log(`Browse your REST API at: ${apiUrl}/${GlobalConstants.swaggerPrefix}`);
