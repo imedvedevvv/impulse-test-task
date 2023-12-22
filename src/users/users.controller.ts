@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Inject, Patch, Post, UseInterceptors } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { Service } from '../common/enums';
 import { IUsersService } from './users.service';
@@ -21,9 +21,10 @@ export class UsersController {
   @Public()
   @Get('all')
   async findAll() {
-    return this.usersService.findMany({ select: { email: true } });
+    return this.usersService.findMany({ select: { id: true, username: true } });
   }
 
+  @ApiBearerAuth()
   @Get('/details')
   async findById(@JwtUser() { id }: JwtUserPayload) {
     return this.usersService.findById(id);
@@ -35,11 +36,13 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @ApiBearerAuth()
   @Patch()
   async update(@JwtUser() { id }: JwtUserPayload, @Body() userUpdateDto: UserUpdateDto) {
     return this.usersService.update({ where: { id }, data: { ...userUpdateDto } });
   }
 
+  @ApiBearerAuth()
   @Delete()
   async delete(@JwtUser() { id }: JwtUserPayload) {
     return this.usersService.deleteById(id);

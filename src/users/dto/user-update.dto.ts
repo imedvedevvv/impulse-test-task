@@ -1,11 +1,11 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UserUpdateDto {
   @IsEmail()
   @IsString()
-  @IsNotEmpty()
-  public readonly email!: string;
+  @IsOptional()
+  public readonly email?: string;
 
   @IsString()
   @IsOptional()
@@ -14,5 +14,5 @@ export class UserUpdateDto {
   @IsString()
   @IsOptional()
   @Type(() => String)
-  public readonly password!: string;
+  public readonly password?: string;
 }

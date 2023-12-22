@@ -94,6 +94,12 @@ export class UsersService implements IUsersService {
   }
 
   public async deleteById(userId: number): Promise<{ count: number }> {
+    const user = await this.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException(ResponseMessage.UserNotFound);
+    }
+
     await this.prismaService.user.delete({ where: { id: userId } });
     return { count: 1 };
   }

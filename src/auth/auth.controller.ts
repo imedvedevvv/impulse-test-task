@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, Inject, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { IAuthService } from './auth.service';
 import { Public } from './decorators/is-public.decorator';
@@ -21,6 +21,7 @@ export class AuthController {
     return this.authService.signIn(signIn.email, signIn.password);
   }
 
+  @ApiBearerAuth()
   @ApiOperation({ summary: `Sign-out for existing user` })
   @HttpCode(200)
   @Post('sign-out')

@@ -7,7 +7,7 @@ export function setupSwagger(app: INestApplication): OpenAPIObject {
   const config = new DocumentBuilder()
     .setTitle('Impulse test task')
     .setDescription('Impulse test task backend API')
-    .setVersion('1.0.0')
+    .setVersion('1.0')
     .addBearerAuth()
     .build();
 
