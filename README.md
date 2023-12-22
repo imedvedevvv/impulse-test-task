@@ -1,18 +1,12 @@
-## Installation
+## Applying the database schema
 
 ```bash
-$ yarn install
+$ yarn generate-schema
 ```
 
 ## Running the app
 
 ```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+docker-compose up --build 
 ```
+
